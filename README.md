@@ -24,6 +24,7 @@ This framework establishes Wi-Fi connectivity, Blynk integration, multi-device s
 **ESP1 – LED Control**
 - D3 → LED (+) for Tracking Conformation
 - GND → LED (−)
+- RSSI Wi-Fi Scanning
 
 **ESP2 – No additional wiring**  
 - ESP2 only scans for Wi-Fi RSSI.
@@ -44,27 +45,7 @@ This framework establishes Wi-Fi connectivity, Blynk integration, multi-device s
 ## Blynk Dashboard Setup
 
 1. Create a **new Blynk project** with **ESP8266**.  
-2. Add the following **widgets**:
-   - **Label or Gauge** → V0 (ESP1 RSSI)  
-   - **Label or Gauge** → V1 (ESP2 RSSI)  
-   - **Button** → V2 (ESP1 LED)  
-3. Set button mode to **Switch**.
-
----
-
-## Code Structure
-
-WiFi-RSSI-Framework/
-├── esp1/
-│ └── esp1.ino # LED control + RSSI placeholder
-├── esp2/
-│ └── esp2.ino # RSSI placeholder
-└── README.md
-
-
-- `esp1.ino`: Connects ESP1 to Wi-Fi and Blynk, controls LED, sends RSSI to V0.  
-- `esp2.ino`: Connects ESP2 to Wi-Fi and Blynk, sends RSSI to V1.  
-- Both ESPs are fully **multi-device ready**.
+2. Add the widgets attached under /extras and change datastreams according to your preferences.: 
 
 ---
 
@@ -76,8 +57,8 @@ WiFi-RSSI-Framework/
    - `YOUR_AUTH_TOKEN` → Blynk project auth token
 
 2. Upload `esp1.ino` to ESP1 and `esp2.ino` to ESP2.  
-3. Open the **Serial Monitor** to check connection and RSSI values.  
-4. Open the **Blynk dashboard** to view live RSSI and control the LED.  
+3. Open the Serial Monitor to check connection and RSSI values.  
+4. Open the Blynk dashboard to view live RSSI and control the LED.  
 
 ---
 
@@ -90,7 +71,6 @@ WiFi-RSSI-Framework/
 ---
 
 ## Notes
-> This project demonstrates **Week 1 framework**, focusing on **infrastructure, dashboard setup, and multi-device connectivity**.  
 > No triangulation or advanced calculations are included yet.  
 
 ---
