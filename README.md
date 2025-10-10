@@ -7,13 +7,13 @@ This is the Week 1 framework for the IoT project. The goal is to set up a workin
 - ESP2 measures the same RSSI and sends it to Blynk Virtual Pin V1.
 - An LED connected to ESP1 can be controlled from the Blynk dashboard via V2 or a button widget.
 
-This framework establishes Wi-Fi connectivity, Blynk integration, multi-device setup, and dashboard visualization, ready for further functionality like triangulation or speed measurement in later weeks.
+This framework is made for further functionality like triangulation and location detection in later weeks.
 
 ---
 
 ## Hardware Requirements
 - 2 × ESP8266 (NodeMCU, Wemos D1 mini, etc.)
-- 1 × LED + resistor (220Ω)
+- LED
 - Jumper wires
 - Breadboard (optional)
 
@@ -62,11 +62,11 @@ This framework establishes Wi-Fi connectivity, Blynk integration, multi-device s
 
 ---
 
-## What’s Next (Week 2+)
-- Replace placeholders with **actual RSSI of the SSID `SomeGuyWithPretzels`**.  
-- Implement **distance estimation** using RSSI.  
-- Add **triangulation** using ESP1, ESP2, and optionally your computer.  
-- Add **events or alerts** if RSSI exceeds thresholds.
+## Next Step
+- Replace placeholders with actual RSSI of the SSID `SomeGuyWithPretzels`.  
+- Implement distance estimation using RSSI.  
+- Add triangulation using ESP1, ESP2, and a computer for 2D triangulation.  
+- Add events or alerts if RSSI exceeds thresholds.
 
 ---
 
