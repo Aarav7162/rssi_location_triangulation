@@ -3,7 +3,7 @@
 ## Project Overview
 This is the Week 1 framework for the IoT project. The goal is to set up a working IoT infrastructure using two ESP8266 boards and the Blynk dashboard.  
 
-- ESP1 measures the RSSI of a specific Wi-Fi SSID (`SomeGuyWithPretzels`) and sends the value to Blynk Virtual Pin V0.
+- ESP1 measures the RSSI of a specific Wi-Fi SSID (`SomeGuyWithPretzels (Replace with your target network)`) and sends the value to Blynk Virtual Pin V0.
 - ESP2 measures the same RSSI and sends it to Blynk Virtual Pin V1.
 - An LED connected to ESP1 can be controlled from the Blynk dashboard via V2 or a button widget.
 
