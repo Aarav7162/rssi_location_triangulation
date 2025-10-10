@@ -1,16 +1,15 @@
 #define BLYNK_TEMPLATE_ID "TMPLxxxxxx"
 #define BLYNK_TEMPLATE_NAME "RSSI Framework"
 #define BLYNK_DEVICE_NAME "ESP2"
-#define BLYNK_AUTH_TOKEN "YOUR_AUTH_TOKEN"
+#define BLYNK_AUTH_TOKEN "auth"
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 
 char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "YOUR_WIFI_SSID";
-char pass[] = "YOUR_WIFI_PASSWORD";
+char ssid[] = "ssid";
+char pass[] = "pass";
 
-// Virtual pin for RSSI
 #define RSSI_VPIN V1
 
 const char* targetSSID = "SomeGuyWithPretzels";
@@ -31,9 +30,8 @@ void setup() {
 void loop() {
   Blynk.run();
 
-  // --- Scan networks and find RSSI of target SSID ---
   int n = WiFi.scanNetworks();
-  int rssiValue = -100; // default if not found
+  int rssiValue = -100;
 
   for (int i = 0; i < n; i++) {
     if (WiFi.SSID(i) == targetSSID) {
@@ -42,12 +40,11 @@ void loop() {
     }
   }
 
-  // Send RSSI to Blynk
   Blynk.virtualWrite(RSSI_VPIN, rssiValue);
   Serial.print("RSSI for ");
   Serial.print(targetSSID);
   Serial.print(": ");
   Serial.println(rssiValue);
 
-  delay(2000); // update every 2 seconds
+  delay(2000);
 }
