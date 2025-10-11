@@ -48,11 +48,10 @@ class RadarGUI(tk.Tk):
 
         self.center_x = 450
         self.center_y = 325
-        self.radius = 280  # new radius
+        self.radius = 280
 
-        # scale conversion based on real-world dimensions
-        self.scale_x = self.radius / 78.0   # for ±78 cm
-        self.scale_y = self.radius / 40.0   # for ±40 cm
+        self.scale_x = self.radius / 78.0
+        self.scale_y = self.radius / 40.0
 
         self.draw_grid_with_distances()
 
@@ -81,11 +80,9 @@ class RadarGUI(tk.Tk):
                 outline="green"
             )
 
-        # Axis lines
         self.canvas.create_line(self.center_x, self.center_y - self.radius, self.center_x, self.center_y + self.radius, fill="green")
         self.canvas.create_line(self.center_x - self.radius, self.center_y, self.center_x + self.radius, self.center_y, fill="green")
 
-        # Labels for max real-world distances
         font = ("Courier New", 10)
         self.canvas.create_text(self.center_x + self.radius, self.center_y + 15, text="+78 cm", fill="lime", font=font)
         self.canvas.create_text(self.center_x - self.radius, self.center_y + 15, text="-78 cm", fill="lime", font=font)
@@ -124,15 +121,12 @@ class RadarGUI(tk.Tk):
 
         for angle_deg, color, label in nodes:
             rad = math.radians(angle_deg)
-            # Compute ellipse-based scaling (since x and y ranges differ)
             x = self.center_x + math.cos(rad) * self.radius
             y = self.center_y - math.sin(rad) * self.radius
 
-            # Draw the node dot
             self.canvas.create_oval(x - node_radius, y - node_radius, x + node_radius, y + node_radius,
                                     fill=color, outline="", tags="nodes")
 
-            # Label slightly outside
             offset = 20
             lx = self.center_x + math.cos(rad) * (self.radius + offset)
             ly = self.center_y - math.sin(rad) * (self.radius + offset)
