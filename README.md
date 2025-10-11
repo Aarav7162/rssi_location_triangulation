@@ -43,14 +43,16 @@ This setup is designed as the groundwork for more advanced features in future we
 
 ---
 
-## Blynk Dashboard Setup
+## Blynk and Python Dashboard Setup
 1. Open the Blynk app and create a new project for **ESP8266**.  
 2. Add widgets for RSSI display and LED control. Assign the correct virtual pins:  
    - **V0**: Display RSSI from ESP1  
    - **V1**: Display RSSI from ESP2  
-   - **V7**: LED control (switch or button widget)  
-
-> Make sure your dashboard layout is intuitive for monitoring live signal strength.
+   - **V7**: LED control (switch or button widget)
+3. Open dashboard.py, and change your target SSID.
+4. Run dashboard.py
+   
+> Make sure your dashboard layout is readable for monitoring live signal strength.
 
 ---
 
