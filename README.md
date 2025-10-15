@@ -1,78 +1,158 @@
-# WiFi RSSI Monitoring Framework – Week 1
+# ESP Wi-Fi RSSI Position Tracking System
 
-## Project Overview
-This project is the foundation for an IoT-based Wi-Fi monitoring and location detection system. For Week 1, we’re setting up the basic infrastructure using two ESP8266 boards and the Blynk dashboard.  
+## Overview
+This project implements a Wi-Fi-based positioning and tracking system using multiple ESP8266/ESP32 nodes and a single transmitting tag device. The system estimates the angle and distance of the tracked tag from multiple fixed points using RSSI fingerprinting and triangulation. The data is then visualized and processed using a Python dashboard.
 
-- **ESP1** and **ESP2** measure the Wi-Fi signal strength (RSSI) of a target SSID (`SomeGuyWithPretzels`) and send these values to the Blynk dashboard.  
-- An **LED** connected to ESP1 can be controlled remotely from the Blynk dashboard via a virtual pin (V2 or a button widget).  
-
-This setup is designed as the groundwork for more advanced features in future weeks, like distance estimation and triangulation.
+Future versions will include a Lego turret that physically tracks the tag using servos for automated aiming or pointing systems.
 
 ---
 
-## Hardware Requirements
-- 2 × ESP8266 boards (NodeMCU, Wemos D1 Mini, etc.)  
-- 1 × LED  
-- Jumper wires  
-- Breadboard (optional for easy connections)  
+## Core Concept
+The ESP nodes measure the **RSSI (Received Signal Strength Indicator)** of a moving Wi-Fi tag (named `tagESP`). Each ESP sends its readings to **Blynk Cloud**, from where a Python program fetches the RSSI data, calculates the approximate angle and distance and visualizes or triggers movements accordingly.
+
+This setup can be used for:
+- Indoor position tracking
+- Object following robots
+- BLE/Wi-Fi hybrid localization systems
+- Educational IoT research and demos
 
 ---
 
-## Wiring Details
-
-### ESP1 – LED Control + RSSI
-| Pin | Connection | Purpose |
-|-----|------------|---------|
-| D3  | LED (+)    | Status indicator / Tracking confirmation |
-| GND | LED (−)    | Ground connection |
-| –   | Internal Wi-Fi scan | RSSI measurement |
-
-### ESP2 – RSSI Only
-- No additional wiring; ESP2 only scans for Wi-Fi RSSI.
+## Hardware Setup
+| Device | Purpose | Quantity |
+|---------|----------|-----------|
+| ESP8266 (NodeMCU) | Fixed nodes to read RSSI | 4 |
+| ESP8266 / ESP32 | Transmitting tag device | 1 |
+| Ultrasonic sensor (HC-SR04) | Distance estimation (future) | 1 |
+| Servo motor | Direction control (future turret) | 2 |
+| Breadboard, jumper wires, power cables | Connectivity | - |
 
 ---
 
-## Software Requirements
-- [Arduino IDE](https://www.arduino.cc/en/software)  
-- ESP8266 Board Package ([Installation Guide](https://arduino.esp8266.com/stable/package_esp8266com_index.json))  
-- [Blynk Library](https://github.com/blynkkk/blynk-library)  
-- Blynk App (iOS / Android) configured with the following virtual pins:  
-  - **V0** → ESP1 RSSI  
-  - **V1** → ESP2 RSSI  
-  - **V7** → LED control  
+## Node (Receiver) Code Summary
+Each ESP8266 connects to Blynk and reads the RSSI of a Wi-Fi SSID named `tagESP`. It transmits this RSSI data every few seconds to Blynk Cloud.
+
+```cpp
+#define BLYNK_TEMPLATE_ID "TMPL3j_L7mmM3"
+#define BLYNK_TEMPLATE_NAME "RSSI Location Triangulation"
+#define BLYNK_DEVICE_NAME "RSSI_ESP"
+#define BLYNK_AUTH_TOKEN "ZoFyLt0hTo429oaxvlmIcqsTp9Fxd1sI"
+
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "YOUR_WIFI_SSID";
+char pass[] = "YOUR_WIFI_PASSWORD";
+
+String targetNetwork = "tagESP";
+int vpin = V0; // Change for each ESP node (V0, V1, V2, V3)
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, pass);
+  Blynk.begin(auth, ssid, pass);
+}
+
+void loop() {
+  Blynk.run();
+  int rssi = WiFi.RSSI();
+  Blynk.virtualWrite(vpin, rssi);
+  delay(1000);
+}
+```
 
 ---
 
-## Blynk and Python Dashboard Setup
-1. Open the Blynk app and create a new project for **ESP8266**.  
-2. Add widgets for RSSI display and LED control. Assign the correct virtual pins:  
-   - **V0**: Display RSSI from ESP1  
-   - **V1**: Display RSSI from ESP2  
-   - **V7**: LED control (switch or button widget)
-3. Open dashboard.py, and change your target SSID.
-4. Run dashboard.py
-   
-> Make sure your dashboard layout is readable for monitoring live signal strength.
+## Tag (Emitter) Code Summary
+The emitter ESP simply creates a Wi-Fi Access Point named `tagESP`. The nodes detect and measure its signal.
+
+```cpp
+#include <ESP8266WiFi.h>
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.softAP("tagESP", "12345678");
+  Serial.println("Tag active: tagESP");
+}
+
+void loop() {
+  delay(1000);
+}
+```
 
 ---
 
-## Usage Instructions
-1. Open the Arduino IDE and modify both ESP sketches with your specific network details:
-   ```cpp
-   const char* ssid = "ssid";
-   const char* pass = "pass";
-   char auth[] = "auth";
-2. Upload esp1.ino to ESP1 and esp2.ino to ESP2.
-3. Open the Serial Monitor to check connection status and live RSSI values.
-4. Access the Blynk dashboard to monitor live RSSI readings and control the LED.
+## Python Dashboard
+The Python script fetches RSSI values from Blynk Cloud using its REST API, averages them for 20 seconds (calibration), and estimates the tag's **angle** relative to the node grid.
 
-## Next Steps
-- Replace placeholders with the actual target SSID.
-- Calculate approximate distances using RSSI values.
-- Implement basic 2D triangulation using ESP1, ESP2, and a computer or third ESP node.
-- Trigger alerts or events when signal strength exceeds or drops below set thresholds.
-- Expand the system to multiple Wi-Fi networks or multiple ESP nodes for advanced location mapping.
+### Requirements
+```bash
+pip install requests numpy matplotlib
+```
 
-## Notes
-> This framework only provides raw RSSI readings; no distance calculation or triangulation is implemented yet.
-> Make sure both ESP modules are connected to the same Wi-Fi network for accurate monitoring.
+### Features
+- RSSI averaging and filtering
+- Real-time coordinate calculation
+- JSON saving of calibration and live data
+- Placeholder for servo motion and ultrasonic integration
+
+### Example Output
+```
+Starting calibration (20s)...
+Average RSSI Node1=-43, Node2=-51, Node3=-47, Node4=-50
+Estimated Angle: 62°
+Coordinates: (1.84m, 2.1m)
+```
+
+---
+
+## Data Structure (JSON)
+Data is saved automatically to `data.json`:
+
+```json
+{
+  "calibration": {
+    "node1": -45,
+    "node2": -52,
+    "node3": -48,
+    "node4": -50
+  },
+  "live": {
+    "angle": 61.5,
+    "x": 1.84,
+    "y": 2.10
+  }
+}
+```
+
+---
+
+## Lego Turret (Future Addition)
+Once position tracking is stable, the project will expand into a **motorized Lego turret**:
+- Controlled via ESP8266 + PCA9685 servo driver
+- Tracks the tag in real-time
+- Rotates based on calculated angle
+- Fires a laser or LED at the tracked position
+
+---
+
+## Future Roadmap
+- [ ] Integrate live servo rotation
+- [ ] Add ultrasonic-based distance calculation
+- [ ] Build Lego turret base
+- [ ] Use Kalman filter for smoother motion
+- [ ] Add GUI visualization with Tkinter or PyQt
+
+---
+
+## References
+- Blynk IoT Cloud API
+- ESP8266 Wi-Fi documentation
+- Signal triangulation and localization research
+- BLE AoA/AoD literature (for future BLE integration)
+
+---
+
+## Author
+**Aarav** — Co-Founder of NeuroCode, developer of **Synk IDE** and **Wi-Fi Positioning System**.
