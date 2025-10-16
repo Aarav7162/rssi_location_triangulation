@@ -35,32 +35,6 @@ The main objectives are:
 
 ## System Architecture
 
-```
-+---------------------+        +------------------+
-|    Tag Device       |        |    ESP Node 0    |
-| Wi-Fi / BLE Tag     |<------>| Measures RSSI    |
-+---------------------+        +------------------+
-                                     |
-                                     v
-                             +------------------+
-                             | Blynk Cloud API  |
-                             +------------------+
-                                     |
-                                     v
-                             +------------------+
-                             | Python Tracker   |
-                             | - Reads JSON     |
-                             | - Computes position |
-                             | - Calculates angle |
-                             +------------------+
-                                     |
-                                     v
-                            +-------------------+
-                            | Servo or Lego Turret |
-                            | Placeholder       |
-                            +-------------------+
-```
-
 Each ESP node continuously measures the RSSI of the tag and sends it to Blynk Cloud. The Python tracker collects these readings, compares them to the fingerprint database, computes the estimated position, and calculates the angle from the origin.
 
 ---
