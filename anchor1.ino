@@ -1,11 +1,11 @@
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 
-#define WIFI_SSID "YourWiFiSSID"
-#define WIFI_PASS "YourWiFiPassword"
+#define WIFI_SSID "ssid"
+#define WIFI_PASS "pass"
 #define TARGET_SSID "tagESP"
 
-#define BLYNK_AUTH "ZoFyLt0hTo429oaxvlmIcqsTp9Fxd1sI"
+#define BLYNK_AUTH "auth_token"
 
 #define RSSI_VPIN V0
 
