@@ -1,158 +1,216 @@
-# ESP Wi-Fi RSSI Position Tracking System
+# Indoor Position Tracking Using ESP8266/ESP32 and Blynk
 
-## Overview
-This project implements a Wi-Fi-based positioning and tracking system using multiple ESP8266/ESP32 nodes and a single transmitting tag device. The system estimates the angle and distance of the tracked tag from multiple fixed points using RSSI fingerprinting and triangulation. The data is then visualized and processed using a Python dashboard.
+![Project Banner](https://via.placeholder.com/800x200.png?text=Indoor+Position+Tracking)
 
-Future versions will include a Lego turret that physically tracks the tag using servos for automated aiming or pointing systems.
-
----
-
-## Core Concept
-The ESP nodes measure the **RSSI (Received Signal Strength Indicator)** of a moving Wi-Fi tag (named `tagESP`). Each ESP sends its readings to **Blynk Cloud**, from where a Python program fetches the RSSI data, calculates the approximate angle and distance and visualizes or triggers movements accordingly.
-
-This setup can be used for:
-- Indoor position tracking
-- Object following robots
-- BLE/Wi-Fi hybrid localization systems
-- Educational IoT research and demos
-
----
-
-## Hardware Setup
-| Device | Purpose | Quantity |
-|---------|----------|-----------|
-| ESP8266 (NodeMCU) | Fixed nodes to read RSSI | 4 |
-| ESP8266 / ESP32 | Transmitting tag device | 1 |
-| Ultrasonic sensor (HC-SR04) | Distance estimation (future) | 1 |
-| Servo motor | Direction control (future turret) | 2 |
-| Breadboard, jumper wires, power cables | Connectivity | - |
+## Table of Contents
+1. Project Overview
+2. System Architecture
+3. Hardware Requirements
+4. Software Requirements
+5. Setup Instructions
+6. Calibration Procedure
+7. Live Tracking
+8. Python Tracker Code
+9. Fingerprint JSON Structure
+10. Servo Integration and Lego Turret
+11. Data Flow and Communication
+12. Future Improvements
+13. License
 
 ---
 
-## Node (Receiver) Code Summary
-Each ESP8266 connects to Blynk and reads the RSSI of a Wi-Fi SSID named `tagESP`. It transmits this RSSI data every few seconds to Blynk Cloud.
+## Project Overview
 
-```cpp
-#define BLYNK_TEMPLATE_ID "TMPL3j_L7mmM3"
-#define BLYNK_TEMPLATE_NAME "RSSI Location Triangulation"
-#define BLYNK_DEVICE_NAME "RSSI_ESP"
-#define BLYNK_AUTH_TOKEN "ZoFyLt0hTo429oaxvlmIcqsTp9Fxd1sI"
+This project demonstrates an indoor tracking system that uses ESP8266 and ESP32 microcontrollers to locate a moving Wi-Fi or BLE-enabled tag within a confined space. The system measures the received signal strength indicator from multiple nodes, compares these readings against pre-recorded fingerprints, and estimates the tag's position in 2D space. Additionally, the angle from the origin is calculated to allow for future integration with servo motors or Lego turrets for visual tracking.
 
-#include <ESP8266WiFi.h>
-#include <BlynkSimpleEsp8266.h>
+The main objectives are:
 
-char auth[] = BLYNK_AUTH_TOKEN;
-char ssid[] = "YOUR_WIFI_SSID";
-char pass[] = "YOUR_WIFI_PASSWORD";
+- To measure RSSI from multiple ESP nodes.
+- To calibrate a room with a fingerprint database of RSSI values at known coordinates.
+- To estimate the tag's position in real-time using Python.
+- To calculate the angle from a fixed origin point.
+- To provide a placeholder for servo or motor integration.
 
-String targetNetwork = "tagESP";
-int vpin = V0; // Change for each ESP node (V0, V1, V2, V3)
+---
 
-void setup() {
-  Serial.begin(115200);
-  WiFi.begin(ssid, pass);
-  Blynk.begin(auth, ssid, pass);
-}
+## System Architecture
 
-void loop() {
-  Blynk.run();
-  int rssi = WiFi.RSSI();
-  Blynk.virtualWrite(vpin, rssi);
-  delay(1000);
-}
+```
++---------------------+        +------------------+
+|    Tag Device       |        |    ESP Node 0    |
+| Wi-Fi / BLE Tag     |<------>| Measures RSSI    |
++---------------------+        +------------------+
+                                     |
+                                     v
+                             +------------------+
+                             | Blynk Cloud API  |
+                             +------------------+
+                                     |
+                                     v
+                             +------------------+
+                             | Python Tracker   |
+                             | - Reads JSON     |
+                             | - Computes position |
+                             | - Calculates angle |
+                             +------------------+
+                                     |
+                                     v
+                            +-------------------+
+                            | Servo or Lego Turret |
+                            | Placeholder       |
+                            +-------------------+
 ```
 
----
-
-## Tag (Emitter) Code Summary
-The emitter ESP simply creates a Wi-Fi Access Point named `tagESP`. The nodes detect and measure its signal.
-
-```cpp
-#include <ESP8266WiFi.h>
-
-void setup() {
-  Serial.begin(115200);
-  WiFi.softAP("tagESP", "12345678");
-  Serial.println("Tag active: tagESP");
-}
-
-void loop() {
-  delay(1000);
-}
-```
+Each ESP node continuously measures the RSSI of the tag and sends it to Blynk Cloud. The Python tracker collects these readings, compares them to the fingerprint database, computes the estimated position, and calculates the angle from the origin.
 
 ---
 
-## Python Dashboard
-The Python script fetches RSSI values from Blynk Cloud using its REST API, averages them for 20 seconds (calibration), and estimates the tag's **angle** relative to the node grid.
+## Hardware Requirements
 
-### Requirements
+- Four ESP8266 or ESP32 nodes placed in known positions around the tracking area.
+- One Wi-Fi or BLE-enabled tag that will be tracked.
+- Optional ultrasonic sensor for distance visualization.
+- Optional servo motor or Lego turret for angle visualization.
+- USB cables, breadboards, and power supplies for ESP nodes.
+
+---
+
+## Software Requirements
+
+- Python 3.11 or higher
+- Required Python packages: requests, json, math, statistics
+- Arduino IDE for programming the ESP nodes
+- Blynk account for sending and receiving data
+
+---
+
+## Setup Instructions
+
+### ESP Node Setup
+
+1. Program each ESP node using the Arduino IDE to measure RSSI from the tag.
+2. Connect each ESP node to Wi-Fi and configure it to send RSSI readings to specific Blynk virtual pins (V0 to V3).
+3. The nodes should transmit RSSI at regular intervals, e.g., every 0.5 seconds.
+
+### Python Environment Setup
+
+1. Clone this repository:
+
 ```bash
-pip install requests numpy matplotlib
+git clone https://github.com/<your-username>/ESP-RSSI-Tracking.git
+cd ESP-RSSI-Tracking
 ```
 
-### Features
-- RSSI averaging and filtering
-- Real-time coordinate calculation
-- JSON saving of calibration and live data
-- Placeholder for servo motion and ultrasonic integration
+2. Install the Python dependencies:
 
-### Example Output
+```bash
+pip install requests
 ```
-Starting calibration (20s)...
-Average RSSI Node1=-43, Node2=-51, Node3=-47, Node4=-50
-Estimated Angle: 62°
-Coordinates: (1.84m, 2.1m)
-```
+
+3. Ensure that `fingerprint_data.json` is present in the same folder as the tracker script.
 
 ---
 
-## Data Structure (JSON)
-Data is saved automatically to `data.json`:
+## Calibration Procedure
+
+1. Run `calibration.py` to record RSSI fingerprints for the room.
+2. The script will prompt the user to enter X and Y coordinates for each calibration point.
+3. For each calibration point:
+   - Press Enter to start the RSSI measurement.
+   - The script will collect a predefined number of samples (e.g., 20) and calculate the average RSSI for each node.
+   - These averages will be stored in `fingerprint_data.json` as a key-value pair, where the key is the coordinate and the value is the average RSSI per node.
+4. Repeat this for all desired points in the room. For example, 200 calibration points evenly distributed will improve accuracy.
+
+---
+
+## Live Tracking
+
+Run the Python tracker using the following command:
+
+```bash
+python tracker.py
+```
+
+The console output will continuously display:
+
+- Current average RSSI from each node.
+- Estimated position in meters.
+- Angle from the origin.
+- Placeholder message for servo or turret rotation.
+
+Example output:
+
+```
+🔧 Live RSSI Tracking Started...
+RSSI: {'V0': -35, 'V1': -32, 'V2': 0, 'V3': 0}
+→ Estimated Position: (1.33, 2.33) meters
+→ Angle from origin: 60.35°
+[SERVO PLACEHOLDER] Would rotate to 60.35°
+```
+
+Tracking continues indefinitely until interrupted with Ctrl+C.
+
+---
+
+## Python Tracker Code
+
+- Collects a specified number of RSSI samples per cycle.
+- Averages the readings for each node.
+- Finds the closest fingerprint point using Euclidean distance in RSSI space.
+- Calculates the angle from the origin using `atan2`.
+- Prints results to the console.
+- Placeholder code is provided for servo or Lego turret rotation.
+
+The script can be modified to include live per-sample logging for more granular monitoring.
+
+---
+
+## Fingerprint JSON Structure
+
+The JSON file stores calibration points as follows:
 
 ```json
 {
-  "calibration": {
-    "node1": -45,
-    "node2": -52,
-    "node3": -48,
-    "node4": -50
-  },
-  "live": {
-    "angle": 61.5,
-    "x": 1.84,
-    "y": 2.10
-  }
+    "1.33_2.33": {"V0": -35, "V1": -32, "V2": 0, "V3": 0},
+    "0.5_1.5": {"V0": -42, "V1": -38, "V2": -5, "V3": -7}
 }
 ```
 
----
-
-## Lego Turret (Future Addition)
-Once position tracking is stable, the project will expand into a **motorized Lego turret**:
-- Controlled via ESP8266 + PCA9685 servo driver
-- Tracks the tag in real-time
-- Rotates based on calculated angle
-- Fires a laser or LED at the tracked position
+- Keys are the X_Y coordinates in meters.
+- Values are dictionaries of average RSSI per node.
 
 ---
 
-## Future Roadmap
-- [ ] Integrate live servo rotation
-- [ ] Add ultrasonic-based distance calculation
-- [ ] Build Lego turret base
-- [ ] Use Kalman filter for smoother motion
-- [ ] Add GUI visualization with Tkinter or PyQt
+## Servo Integration and Lego Turret
+
+- Currently represented as a placeholder in the Python tracker.
+- The `angle` calculated can be sent to a servo or Lego turret to rotate in real-time.
+- Ultrasonic sensors can be added for precise distance measurement.
+- Future versions can include automatic aiming and visualization of tracked positions.
 
 ---
 
-## References
-- Blynk IoT Cloud API
-- ESP8266 Wi-Fi documentation
-- Signal triangulation and localization research
-- BLE AoA/AoD literature (for future BLE integration)
+## Data Flow and Communication
+
+1. The tag emits a Wi-Fi or BLE signal.
+2. Each ESP node measures the RSSI from the tag.
+3. ESP nodes send RSSI readings to Blynk Cloud via API.
+4. The Python tracker pulls RSSI values from Blynk, averages them, and compares them with calibration fingerprints.
+5. Estimated position and angle are printed and optionally used for servo/turret control.
 
 ---
 
-## Author
-**Aarav** — Co-Founder of NeuroCode, developer of **Synk IDE** and **Wi-Fi Positioning System**.
+## Future Improvements
+
+- Real-time GUI showing tag position on a room map.
+- Automatic calibration with a robot moving to known points.
+- Integration with BLE 5.1 AoA hardware for higher precision.
+- Smoothing and prediction algorithms to reduce noise in position estimates.
+- Multi-floor tracking and 3D position estimation.
+
+---
+
+## License
+
+MIT License. The project can be modified and used for personal, educational, or experimental purposes.
+
