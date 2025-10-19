@@ -1,22 +1,21 @@
-# RSSI Location Triangulation — Folder: two
+# RSSI Location Triangulation
 
 # Overview
-This folder contains a complete indoor localization/fingerprinting system built using **ESP8266 anchors**, a **soft‑AP tag** (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and — when triggered — can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/), allowing you to capture short payloads served by the tag.
+This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag.
 
 It is intended for educational purposes, proof-of-concept IoT localization, and controlled indoor tracking experiments.
 
 ## Folder Structure
 ```
-two/
-├── anchor1.ino          # ESP8266 sketch reporting RSSI to Blynk V0
-├── anchor2.ino          # ESP8266 sketch reporting RSSI to Blynk V1
-├── anchor3.ino          # ESP8266 sketch reporting RSSI to Blynk V2, handles sniffing triggered by V9, returns payload to V10
-├── anchor4.ino          # ESP8266 sketch reporting RSSI to Blynk V3
-├── tag_esp.ino          # ESP soft-AP serving SSID `tagESP` with simple HTTP payload
-├── calibration.py       # Python utility to collect RSSI fingerprints at known grid points
-├── tracker.py           # Python live tracker: estimates position and updates Blynk V6/V7, handles serial streaming when V9 = 1
-├── fingerprint_data.json# JSON file storing collected RSSI fingerprints
-└── README.md            # Documentation (this file)
+├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0
+├── anchor2.ino             # ESP8266 sketch reporting RSSI to Blynk V1
+├── anchor3.ino             # ESP8266 sketch reporting RSSI to Blynk V2, handles sniffing triggered by V9, returns payload to V10
+├── anchor4.ino             # ESP8266 sketch reporting RSSI to Blynk V3
+├── tag_esp.ino             # ESP soft-AP serving SSID `tagESP` with simple HTTP payload and WiFi beacon
+├── calibration.py          # Python utility to collect RSSI fingerprints at known grid points
+├── tracker.py              # Python live tracker: estimates position and updates Blynk V6/V7, handles serial streaming when V9 = 1
+├── fingerprint_data.json   # JSON file storing collected RSSI fingerprints
+└── README.md               # Documentation (this file)
 ```
 
 ## Quick Mapping
@@ -38,15 +37,15 @@ two/
    pip install --upgrade pip
    pip install requests numpy pyserial
    ```
-3. Arduino IDE or PlatformIO to flash ESP8266 sketches.
+3. Arduino IDEw to flash ESP8266 sketches.
 4. Blynk account with project matching the template/token in the ESP sketches.
 
 ## Configuration
 Before running/flashing, update constants in the scripts:
-- **BLYNK_AUTH** — must match across all ESP anchors and Python scripts.
-- **WIFI_SSID / WIFI_PASS** — your home WiFi credentials for anchors.
-- **TARGET_SSID** — `tagESP`, the SSID that anchors scan for.
-- **RSSI virtual pins** — ensure anchors map to V0..V3 correctly.
+- **BLYNK_AUTH** - must match across all ESP anchors and Python scripts.
+- **WIFI_SSID / WIFI_PASS** - your home WiFi credentials for anchors.
+- **TARGET_SSID** - `tagESP`, the SSID that anchors scan for.
+- **RSSI virtual pins** - ensure anchors map to V0...V3 correctly.
 - **tracker.py**:
   - `SERIAL_PORT` (COM port where anchor3 is connected)
   - `SERIAL_BAUD` (default 9600)
@@ -54,7 +53,7 @@ Before running/flashing, update constants in the scripts:
   - `CALIBRATION_FILE` path to your fingerprint_data.json
 
 ## Calibration
-1. Place anchors at fixed locations; do not move them.
+1. Place anchors at fixed locations; do not move them. Visualize these points on a grid and accordingly configure variables.
 2. Boot the tag (soft-AP) and move it to the grid points you want to calibrate.
 3. Start Blynk and verify anchors report RSSI.
 4. Activate the Python virtual environment and run:
@@ -72,9 +71,20 @@ Before running/flashing, update constants in the scripts:
 Keys are "x_y" strings. Values are RSSI readings per anchor.
 ```json
 {
-  "0.5_1.5": { "V0": -42, "V1": -38, "V2": -5, "V3": -7 },
-  "1.33_2.33": { "V0": -100, "V1": -32, "V2": 0, "V3": 0 }
+    "1.33_2.33": {
+        "V0": -100,
+        "V1": -32,
+        "V2": 0,
+        "V3": 0
+    },
+    "0.5_1.5": {
+        "V0": -42,
+        "V1": -38,
+        "V2": -5,
+        "V3": -7
+    }
 }
+
 ```
 - Zero or missing readings may indicate failed scans.
 - Always calibrate with anchors in fixed positions.
@@ -94,6 +104,7 @@ Keys are "x_y" strings. Values are RSSI readings per anchor.
   - RSSI collection pauses.
   - Tracker reads serial from `SERIAL_PORT` (anchor3 ESP) and prints to console.
   - Once V9 returns to 0, RSSI tracking resumes.
+  > Note the the ESP8266 that anchor3.ino was flashed on will have to be reset after V9 resets to 0.
 
 ### Example Console Output
 ```
@@ -128,24 +139,16 @@ This allows testing or short runs without stopping manually.
 
 ## Troubleshooting
 - **No serial output:** Check COM port and ensure ESP is connected and powered.
-- **Zero RSSI readings:** Ensure anchors are online and Blynk is reporting correctly.
+- **Zero or Extreme RSSI readings:** Ensure anchors are online and Blynk is reporting correctly.
 - **Python exceptions:** Verify packages `requests`, `numpy`, `pyserial` are installed in the activated virtualenv.
 - **ESP connection issues:** Anchor3 must be flashed correctly and serial monitor closed in Arduino IDE when running Python serial read.
-
-## Summary
-This system provides a complete indoor RSSI-based positioning pipeline:
-- **Calibration** → Build fingerprint database
-- **Anchors** → Scan RSSI, send to Blynk
-- **Tracker** → Estimate position, update Blynk, handle live serial logging on V9 trigger
-
-It’s designed for experimentation, debugging, and learning about IoT localization, BLE/WiFi RSSI-based tracking, and Python + ESP8266 integration.
 
 ## Sniffing & Trilateration — what this actually does
 This project does two related things:
 
 1. **Trilateration (fingerprinting-based):** the tracker uses RSSI samples from multiple fixed ESP8266 anchors (V0..V3) and compares the measured RSSI vector to a calibrated fingerprint database. The nearest fingerprint (1‑NN on Euclidean distance in RSSI space) is used as the estimated (x,y) position for the tag device.
 
-2. **HTTP sniffing of the tag:** anchor3 (the special anchor) can switch into a sniffing routine when triggered (Blynk V9). In sniff mode it connects to the soft‑AP tag (`tagESP`) and requests `http://192.168.4.56/` repeatedly to capture the short text payloads served by the tag. The captured payloads are returned to the Blynk app (V10) and — when tracker.py detects V9 == 1 — the Python script opens a serial connection to anchor3 and streams whatever the anchor prints (typically the sniffed HTTP payloads).
+2. **HTTP sniffing of the tag:** anchor3 (the special anchor) can switch into a sniffing routine when triggered (Blynk V9). In sniff mode it connects to the soft‑AP tag (`tagESP`) by brute force and requests `http://192.168.4.56/` repeatedly to capture the short text payloads served by the tag. The captured payloads are returned to the Blynk app (V10) and - when tracker.py detects V9 = 1 - the Python script opens a serial connection to anchor3 and streams whatever the anchor prints (the sniffed HTTP payloads).
 
 ### What I updated to support this (developer notes)
 - **Anchor3 sketch** must implement an explicit sniffing routine that:
@@ -180,13 +183,12 @@ When V9 == 1 you should see console output similar to:
 ```
 
 ### Ethics & safety note
-Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test. This project is intended for controlled lab experiments and educational use—do not use it to access or intercept other people's devices or networks without consent.
+Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test. This project is intended for controlled lab experiments and educational use;    do not use it to access or intercept other people's devices or networks without consent.
 
-If you want, I can also: 
-- Add a concise `anchor3.ino` sniffing checklist/snippet to this README. 
-- Provide a tight `anchor3.ino` sketch that prints a single status line per connection attempt and only emits HTTP payloads when new.
+### Brute-force note
 
----
-
-
-
+The reference anchor3 sketch includes an optional small password-try loop used only to connect to a tag device running a soft-AP with a password. This is strictly intended for controlled lab tests on devices you own. Brute-force techniques and password guessing are illegal and unethical when applied to devices or networks you do not own or do not have explicit permission to test.
+> If you need to test connecting to a password-protected tag during development, prefer these safe alternatives:
+> Configure the tag with a known test password so anchors do not need to guess.
+> Add a test-mode on the tag that temporarily disables WiFi security for calibration.
+> Use a USB serial console or direct access to the tag to fetch its payloads during development.
