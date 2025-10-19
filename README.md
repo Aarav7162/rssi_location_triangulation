@@ -188,7 +188,7 @@ Sniffing HTTP requests or attempting to connect to WiFi networks should only be 
 ### Brute-force note
 
 The reference anchor3 sketch includes an optional small password-try loop used only to connect to a tag device running a soft-AP with a password. This is strictly intended for controlled lab tests on devices you own. Brute-force techniques and password guessing are illegal and unethical when applied to devices or networks you do not own or do not have explicit permission to test.
-> If you need to test connecting to a password-protected tag during development, prefer these safe alternatives:
-> Configure the tag with a known test password so anchors do not need to guess.
-> Add a test-mode on the tag that temporarily disables WiFi security for calibration.
-> Use a USB serial console or direct access to the tag to fetch its payloads during development.
+If you need to test connecting to a password-protected tag during development, prefer these safe alternatives:
+- Configure the tag with a known test password so anchors do not need to guess.
+- Add a test-mode on the tag that temporarily disables WiFi security for calibration.
+- Use a USB serial console or direct access to the tag to fetch its payloads during development.
