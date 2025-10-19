@@ -4,8 +4,7 @@ import json
 import math
 import statistics
 
-# --- CONFIG ---
-BLYNK_AUTH = "ZoFyLt0hTo429oaxvlmIcqsTp9Fxd1sI"
+BLYNK_AUTH = "YOUR_BLYNK_AUTH"
 NODES = ["V0", "V1", "V2", "V3"]
 CALIBRATION_FILE = "fingerprint_data.json"
 SAMPLES = 20
@@ -69,3 +68,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
