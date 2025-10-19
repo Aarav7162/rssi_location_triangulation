@@ -154,7 +154,7 @@ This project does two related things:
 - **Anchor3 sketch** must implement an explicit sniffing routine that:
   - Listens for V9 going HIGH/1 via Blynk and reports its state to Serial.
   - Attempts to connect to the tag `tagESP` (using configured candidate passwords if applicable), performs an HTTP GET on `http://192.168.4.56/`, and prints or Blynk-writes the payload.
-  - Minimizes repeated noisy prints — print a single status line per attempt and only print HTTP payloads when they change or on new events.
+  - Minimizes repeated noisy prints - print a single status line per attempt and only print HTTP payloads when they change or on new events.
 
 - **Tracker.py** now:
   - Polls Blynk V9 continuously and **immediately** pauses RSSI sampling when V9 == 1.
@@ -173,17 +173,24 @@ This project does two related things:
 ### Output examples (sniffing)
 When V9 == 1 you should see console output similar to:
 ```
-[PAUSE] V9 = 1 → Pausing RSSI tracking, reading ESP Serial...
-[SERIAL] Reading from COM5...
-[ESP] Trying password: imthepassword
-[ESP] Connected to tagESP (IP 192.168.4.56)
-[ESP] HTTP payload: hello-from-tag
-[ESP] HTTP payload: sensor=24;state=ok
-[PAUSE] V9 released → Resuming RSSI tracking...
+19:44:17.833 -> ....................
+19:44:22.559 -> Connection failed.
+19:44:33.025 -> Setup complete. Monitoring started...
+19:44:35.077 -> RSSI to tagESP: -39
+19:44:36.705 -> RSSI to tagESP: -40
+19:44:38.283 -> RSSI to tagESP: -39
+19:44:39.839 -> RSSI to tagESP: -39
+19:44:39.872 -> V9 Trigger: 1
+19:44:39.872 -> Starting sniff cycle...
+19:44:39.904 -> Trying password: imthepassword
+19:44:40.035 -> ..................... FAILED
+19:44:45.506 -> Trying password: nopeitsme
+19:44:45.626 -> ............>>> CONNECTED to tagESP <<<
+
 ```
 
 ### Ethics & safety note
-Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test. This project is intended for controlled lab experiments and educational use;    do not use it to access or intercept other people's devices or networks without consent.
+Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test. This project is intended for controlled lab experiments and educational use; do not use it to access or intercept other people's devices or networks without consent.
 
 ### Brute-force note
 
