@@ -4,8 +4,7 @@ import json
 import statistics
 import numpy as np
 
-# --- CONFIG ---
-BLYNK_AUTH = "ZoFyLt0hTo429oaxvlmIcqsTp9Fxd1sI"
+BLYNK_AUTH = "YOUR_AUTH"
 NODES = ["V0", "V1", "V2", "V3"]
 CALIBRATION_FILE = "fingerprint_data.json"
 SAMPLES_PER_POINT = 20
@@ -68,7 +67,8 @@ def main():
         with open(CALIBRATION_FILE, "w") as f:
             json.dump(data, f, indent=4)
 
-    print(f"✅ Calibration complete! All data saved to {CALIBRATION_FILE}")
+    print(f"Calibration complete! All data saved to {CALIBRATION_FILE}")
 
 if __name__ == "__main__":
     main()
+
