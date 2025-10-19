@@ -29,7 +29,7 @@ The main objectives are:
 - To calibrate a room with a fingerprint database of RSSI values at known coordinates.
 - To estimate the tag's position in real-time using Python.
 - To calculate the angle from a fixed origin point.
-- To provide a placeholder for servo or motor integration.
+- To launch a projectile towards the tracked object (LEGO turret + servo).
 
 ---
 
@@ -110,16 +110,18 @@ The console output will continuously display:
 - Current average RSSI from each node.
 - Estimated position in meters.
 - Angle from the origin.
-- Placeholder message for servo or turret rotation.
+- Turret rotations and launching.
 
 Example output:
 
 ```
-🔧 Live RSSI Tracking Started...
-RSSI: {'V0': -35, 'V1': -32, 'V2': 0, 'V3': 0}
+RSSI: {'V0': -100, 'V1': -100, 'V2': -5, 'V3': -69}
 → Estimated Position: (1.33, 2.33) meters
-→ Angle from origin: 60.35°
-[SERVO PLACEHOLDER] Would rotate to 60.35°
+→ Angle from origin: 60.28°
+Launcher Rotating to 60.28° via V6
+
+Type 'confirm' to move trigger missile: confirm
+Servo at D8 moved to 45.28160773469483°
 ```
 
 Tracking continues indefinitely until interrupted with Ctrl+C.
@@ -133,7 +135,7 @@ Tracking continues indefinitely until interrupted with Ctrl+C.
 - Finds the closest fingerprint point using Euclidean distance in RSSI space.
 - Calculates the angle from the origin using `atan2`.
 - Prints results to the console.
-- Placeholder code is provided for servo or Lego turret rotation.
+- Servo Lego turret rotation is activated.
 
 The script can be modified to include live per-sample logging for more granular monitoring.
 
@@ -145,9 +147,20 @@ The JSON file stores calibration points as follows:
 
 ```json
 {
-    "1.33_2.33": {"V0": -35, "V1": -32, "V2": 0, "V3": 0},
-    "0.5_1.5": {"V0": -42, "V1": -38, "V2": -5, "V3": -7}
+    "1.33_2.33": {
+        "V0": -100,
+        "V1": -32,
+        "V2": 0,
+        "V3": 0
+    },
+    "0.5_1.5": {
+        "V0": -42,
+        "V1": -38,
+        "V2": -5,
+        "V3": -7
+    }
 }
+
 ```
 
 - Keys are the X_Y coordinates in meters.
@@ -157,17 +170,17 @@ The JSON file stores calibration points as follows:
 
 ## Servo Integration and Lego Turret
 
-- Currently represented as a placeholder in the Python tracker.
-- The `angle` calculated can be sent to a servo or Lego turret to rotate in real-time.
+- Currently sends data to Blynk from the Python tracker.
+- The `angle` calculated is sent to a servo and Lego turret attatched to anchor3.
 - Ultrasonic sensors can be added for precise distance measurement.
-- Future versions can include automatic aiming and visualization of tracked positions.
+- Also includes automatic aiming and visualization of tracked positions.
 
 ---
 
 ## Data Flow and Communication
 
-1. The tag emits a Wi-Fi or BLE signal.
-2. Each ESP node measures the RSSI from the tag.
+1. The tag emits a Wi-Fi signal.
+2. Each ESP node measures the RSSI from the tag ESP.
 3. ESP nodes send RSSI readings to Blynk Cloud via API.
 4. The Python tracker pulls RSSI values from Blynk, averages them, and compares them with calibration fingerprints.
 5. Estimated position and angle are printed and optionally used for servo/turret control.
