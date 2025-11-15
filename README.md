@@ -1,7 +1,7 @@
 # RSSI Location Triangulation
 
 # Overview
-This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag.
+This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag. The main controls dashboard is at https://www.rssi-dashboard.netlify.app.
 
 It is intended for educational purposes, proof-of-concept IoT localization, and controlled indoor tracking experiments.
 
@@ -143,6 +143,12 @@ This allows testing or short runs without stopping manually.
 - **Python exceptions:** Verify packages `requests`, `numpy`, `pyserial` are installed in the activated virtualenv.
 - **ESP connection issues:** Anchor3 must be flashed correctly and serial monitor closed in Arduino IDE when running Python serial read.
 
+## Using the dashboard
+- **Lock On:** Simply activates a cool cutscene.
+- **Track:** Refreshes distance and coordinates.
+- **Launch:** Triggers servo connected at V41 to launch LEGO turret.
+- **RSSI Nodes:** Refreshes RSSI values from Blynk every 2 seconds.
+
 ## Sniffing & Trilateration — what this actually does
 This project does two related things:
 
@@ -190,12 +196,14 @@ When V9 == 1 you should see console output similar to:
 ```
 
 ### Ethics & safety note
-Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test. This project is intended for controlled lab experiments and educational use; do not use it to access or intercept other people's devices or networks without consent.
+> Sniffing HTTP requests or attempting to connect to WiFi networks should only be done on devices and networks you own or have explicit permission to test.
+> This project is intended for controlled experiments and educational use; do not use it to access or intercept other people's devices or networks without consent.
 
 ### Brute-force note
 
-The reference anchor3 sketch includes an optional small password-try loop used only to connect to a tag device running a soft-AP with a password. This is strictly intended for controlled lab tests on devices you own. Brute-force techniques and password guessing are illegal and unethical when applied to devices or networks you do not own or do not have explicit permission to test.
-If you need to test connecting to a password-protected tag during development, prefer these safe alternatives:
+> The reference anchor3 sketch includes an optional small password-try loop used only to connect to a tag device running a soft-AP with a password.
+> This is strictly intended for controlled lab tests on devices you own. Brute-force techniques and password guessing are illegal and unethical when applied to devices or networks you do not own or do not have explicit permission to test.
+> If you need to test connecting to a password-protected tag during development, prefer these safe alternatives:
 - Configure the tag with a known test password so anchors do not need to guess.
 - Add a test-mode on the tag that temporarily disables WiFi security for calibration.
 - Use a USB serial console or direct access to the tag to fetch its payloads during development.
