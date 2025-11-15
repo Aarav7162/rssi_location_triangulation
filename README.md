@@ -1,7 +1,7 @@
 # RSSI Location Triangulation
 
 # Overview
-This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag. The main controls dashboard is at https://www.rssi-dashboard.netlify.app.
+This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag. The main controls dashboard is at rssi-dashboard.netlify.app.
 
 It is intended for educational purposes, proof-of-concept IoT localization, and controlled indoor tracking experiments.
 
