@@ -19,7 +19,7 @@ This integrated system is intended for education, IoT experimentation, wireless 
 
 # Folder Structure
 ```
-├── anchor1.ino             # Reports RSSI to V0 + handles full pan/tilt servo control via Serial
+├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 **and now also handles all pan/tilt servo control logic (D1 = PAN, D5 = TILT)**
 ├── anchor2.ino             # Reports RSSI to V1
 ├── anchor3.ino             # Reports RSSI to V2, sniffing engine, payload → V10
 ├── anchor4.ino             # Reports RSSI to V3
