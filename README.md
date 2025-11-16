@@ -42,8 +42,8 @@ Anchor1 is now responsible for two jobs: RSSI telemetry and local pan/tilt servo
 5. The servos stay where you last set them. There’s no auto-reset or auto-centering.
 6. While you issue servo commands, anchor1 continues scanning WiFi, detecting `tagESP`, and sending RSSI values to Blynk.
 
-### Why The Upgrade Matters
-This makes anchor1 a more capable node: it now provides directional control alongside signal monitoring. Useful for sensor alignment, small radar-like demos, or any setup where you want to control orientation without extra hardware.
+### The Upgrade
+This makes anchor1 a more capable node: it now provides axis control alongside signal monitoring. Useful for sensor alignment, small radar-like demos, or any setup where you want to control orientation without extra hardware.
 
 ## Prerequisites (Windows)
 1. Python 3.8+ installed.
@@ -108,20 +108,20 @@ Update constants in all components:
 - If V9 = 1: pauses RSSI sampling and streams serial logs from anchor3.
 
 ## Using the Dashboard
-- Lock On: triggers a visual cutscene.
-- Track: refreshes coordinates and distance.
-- Launch: triggers the actuator on V41.
-- RSSI Nodes: queries V0–V3 every 2 seconds.
+- **Lock On:** triggers a visual cutscene.
+- **Track:** refreshes coordinates and distance.
+- **Launch:** triggers the actuator on V41.
+- **RSSI Nodes:** queries V0–V3 every 2 seconds.
 
 ## Sniffing & Trilateration
 1. Trilateration uses RSSI fingerprints to match to the closest stored signature.
 2. Sniffing mode lets anchor3 connect to the tag's soft‑AP and request its HTTP payload.
 
 ## Ethics & Safety
-Only use sniffing or scanning features on devices you own or systems where you have explicit permission.
+> Only use sniffing or scanning features on devices you own or systems where you have explicit permission.
 
-## Notes
-- RSSI averaging timing depends on SAMPLES × INTERVAL.
-- Sniffing requires anchor3 to be physically connected to your PC so tracker.py can read its serial output.
-- Anchors must remain fixed for consistent results.
+## Dev Notes
+> - RSSI averaging timing depends on SAMPLES x INTERVAL.
+> - Sniffing requires anchor3 to be physically connected to your PC so tracker.py can read its serial output.
+> - Anchors must remain fixed for consistent results.
 
