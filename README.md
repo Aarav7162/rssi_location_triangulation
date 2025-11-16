@@ -1,192 +1,127 @@
-# RSSI Location Triangulation + Servo Control (Unified System)
+# RSSI Location Triangulation
 
 # Overview
-This project now integrates **indoor localization**, **RSSI fingerprinting**, **HTTP sniffing**, and a **pan/tilt servo controller** into a unified architecture.
+This folder contains a complete indoor localization/fingerprinting system built using ESP8266 anchors, a soft‑AP tag (`tagESP`), and Python utilities. The system is designed for estimating the (x,y) position of a mobile device using RSSI (Received Signal Strength Indicator) fingerprinting. It uses multiple fixed anchors to trilaterate the tag device's position (via 1‑NN matching on RSSI fingerprints) and - when triggered - can sniff and stream the tag's HTTP requests (the tag runs a tiny HTTP server at http://192.168.4.56/ to demonstrate interception of unsecure communication), allowing you to capture short payloads served by the tag. The main controls dashboard is at [Dashboard Website](https://rssi-dashboard.netlify.app).
 
-**anchor1** has been upgraded: it still reports RSSI for `tagESP`, but it now also exposes a serial-based **pan/tilt servo command interface**. This allows you to manually control a camera/antenna turret using commands such as:
+It is intended for educational purposes, proof-of-concept IoT localization, and controlled indoor tracking experiments.
+
+## Folder Structure
 ```
-60,70        → PAN=60, TILT=70
-PAN 120      → PAN=120
-TILT 40      → TILT=40
-```
-All other anchors retain their previous roles. The main dashboard is hosted at the link below:
-
-**Dashboard:** [https://rssi-dashboard.netlify.app](https://rssi-dashboard.netlify.app)
-
-This integrated system is intended for education, IoT experimentation, wireless tracking research, servo‑based directional antennas, and general R&D prototyping.
-
----
-
-# Folder Structure
-```
-├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 **and now also handles all pan/tilt servo control logic (D1 = PAN, D5 = TILT)**
-├── anchor2.ino             # Reports RSSI to V1
-├── anchor3.ino             # Reports RSSI to V2, sniffing engine, payload → V10
-├── anchor4.ino             # Reports RSSI to V3
-├── tag_esp.ino             # Soft‑AP SSID `tagESP` with small HTTP server
-├── calibration.py          # Collects RSSI fingerprints for the grid
-├── tracker.py              # Computes (x,y), pushes to Blynk, controls sniff/pause
-├── fingerprint_data.json   # Stored RSSI fingerprints
-└── README.md               # Documentation
+├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 + pan/tilt servo control
+├── anchor2.ino             # ESP8266 sketch reporting RSSI to Blynk V1
+├── anchor3.ino             # ESP8266 sketch reporting RSSI to Blynk V2, handles sniffing triggered by V9, returns payload to V10
+├── anchor4.ino             # ESP8266 sketch reporting RSSI to Blynk V3
+├── tag_esp.ino             # ESP soft-AP serving SSID `tagESP` with simple HTTP payload and WiFi beacon
+├── calibration.py          # Python utility to collect RSSI fingerprints at known grid points
+├── tracker.py              # Python live tracker: estimates position and updates Blynk V6/V7, handles serial streaming when V9 = 1
+├── fingerprint_data.json   # JSON file storing collected RSSI fingerprints
+└── README.md               # Documentation (this file)
 ```
 
----
+## Quick Mapping
+| Device       | Function                                         | Blynk Pin |
+|--------------|--------------------------------------------------|-----------|
+| anchor1.ino  | Reports RSSI + handles pan/tilt servo control    | V0        |
+| anchor2.ino  | Reports RSSI to second anchor                    | V1        |
+| anchor3.ino  | Reports RSSI, handles sniffing                   | V2 / V10  |
+| anchor4.ino  | Reports RSSI to fourth anchor                    | V3        |
+| tracker.py   | Estimates (x,y) position and updates Blynk pins  | X: V6, Y: V7 |
+| tracker.py   | Watches V9 to pause RSSI collection              | Trigger: V9 |
 
-# Quick Mapping
-| Device       | Function                                                | Blynk Pin |
-|--------------|---------------------------------------------------------|-----------|
-| anchor1.ino  | Reports RSSI; **pan/tilt servo control via Serial**     | V0        |
-| anchor2.ino  | Reports RSSI                                            | V1        |
-| anchor3.ino  | Reports RSSI; sniffing engine; payload → V10           | V2 / V10  |
-| anchor4.ino  | Reports RSSI                                            | V3        |
-| tracker.py   | Computes (x,y) → Blynk                                  | X: V6, Y: V7 |
-| tracker.py   | Watches V9 to pause RSSI and read sniff serial          | Trigger: V9 |
+## Added: Pan/Tilt Servo Control via Anchor1
+Anchor1 is now responsible for two jobs: RSSI telemetry and local pan/tilt servo control. You connect two servos directly to the ESP8266 (e.g., PAN on D1, TILT on D5). The device boots, connects to WiFi/Blynk, starts scanning for `tagESP`, and keeps the servos at their last commanded angles.
 
----
+### How the Servo Control Works
+1. Anchor1 powers up, attaches both servos, initializes them at their starting positions, and starts its normal RSSI scan cycle.
+2. The serial monitor (115200 baud) becomes the control console for moving the servos.
+3. Supported command formats:
+   - `PAN <angle>`
+   - `TILT <angle>`
+   - `(PAN, TILT) = (x, y)` for simultaneous updates.
+4. Angle values are constrained between 0 and 180 degrees.
+5. The servos stay where you last set them. There’s no auto-reset or auto-centering.
+6. While you issue servo commands, anchor1 continues scanning WiFi, detecting `tagESP`, and sending RSSI values to Blynk.
 
-# Prerequisites (Windows)
+### Why The Upgrade Matters
+This makes anchor1 a more capable node: it now provides directional control alongside signal monitoring. Useful for sensor alignment, small radar-like demos, or any setup where you want to control orientation without extra hardware.
+
+## Prerequisites (Windows)
 1. Python 3.8+ installed.
-2. Virtual environment recommended:
+2. Virtual environment and packages:
    ```
    python -m venv .venv
    .venv\Scripts\activate
    pip install --upgrade pip
    pip install requests numpy pyserial
    ```
-3. Arduino IDE for flashing ESP8266.
-4. Blynk template + token matching the ESP code.
+3. Arduino IDE to flash ESP8266 sketches.
+4. Blynk project matching the template/token used across all ESP nodes.
 
----
+## Configuration
+Update constants in all components:
+- `BLYNK_AUTH`
+- `WIFI_SSID` / `WIFI_PASS`
+- `TARGET_SSID` (`tagESP`)
+- RSSI virtual pins V0–V3
+- `tracker.py` variables: SERIAL_PORT, SERIAL_BAUD, SAMPLES, INTERVAL, and path to fingerprint_data.json
 
-# Configuration
-Before flashing or running scripts, configure:
-- **BLYNK_AUTH** – must match across all anchors + Python.
-- **WIFI_SSID / WIFI_PASS** – network anchors connect to.
-- **TARGET_SSID** – usually `tagESP`.
-- **RSSI virtual pins** – ensure anchors map V0–V3.
-- **anchor1** – now includes **servo pins** and serial parser.
-- **tracker.py**:
-  - SERIAL_PORT for anchor3
-  - RSSI sample count and interval
-  - calibration file path
-
----
-
-# Calibration
-Same process as before:
-1. Keep anchors fixed.
-2. Move tag ESP across grid coordinates.
-3. Run:
+## Calibration
+1. Fix all anchors in place.
+2. Power the tag (`tagESP`) and place it at calibration grid points.
+3. Confirm anchors report live RSSI values to Blynk.
+4. Run:
    ```
    python calibration.py
    ```
-4. Script collects and averages RSSI from anchors.
-5. Results stored in `fingerprint_data.json`.
+5. For each prompted grid location, press Enter to sample RSSI. The script averages multiple readings and stores them.
 
 ### Fingerprint JSON Format
 ```json
 {
-    "1.0_2.0": { "V0": -63, "V1": -40, "V2": -55, "V3": -60 },
-    "2.0_3.0": { "V0": -70, "V1": -48, "V2": -59, "V3": -65 }
+    "1.33_2.33": {
+        "V0": -100,
+        "V1": -32,
+        "V2": 0,
+        "V3": 0
+    },
+    "0.5_1.5": {
+        "V0": -42,
+        "V1": -38,
+        "V2": -5,
+        "V3": -7
+    }
 }
 ```
 
----
-
-# Running the Tracker
-1. Ensure `fingerprint_data.json` exists.
-2. Configure constants.
-3. Run:
+## Running the Tracker
+1. Confirm fingerprint_data.json exists.
+2. Adjust tracker configuration.
+3. Launch:
    ```
    python tracker.py
    ```
 
-### Live Behavior
-- Continuously collects RSSI → computes nearest fingerprint → sends (x,y) to V6/V7.
-- When V9 = 1:
-  - RSSI sampling pauses.
-  - Opens serial to **anchor3**.
-  - Streams sniff payloads.
-  - When V9 returns to 0: resumes RSSI.
-
----
-
-# Servo Control (anchor1)
-anchor1 now includes a **full serial command interface** for pan/tilt control.
-
-### Accepted Formats
-```
-60,70           # paired coordinates
-(60,70)         # parentheses OK
-PAN 120         # single-axis
-TILT 40
-120             # PAN only
-T60             # TILT only
-(PAN,TILT)=(90,45)
-```
-
 ### Behavior
-- All commands instantly move servos.
-- Positions clamped 0–180.
-- RSSI reporting unaffected.
-- Servos remain at their last commanded angle until new input.
+- Samples RSSI from anchors.
+- Estimates position using nearest-neighbor matching.
+- Updates Blynk V6/V7.
+- If V9 = 1: pauses RSSI sampling and streams serial logs from anchor3.
 
-This enables directional antenna pointing, camera aiming, or robotics testing.
+## Using the Dashboard
+- Lock On: triggers a visual cutscene.
+- Track: refreshes coordinates and distance.
+- Launch: triggers the actuator on V41.
+- RSSI Nodes: queries V0–V3 every 2 seconds.
 
----
+## Sniffing & Trilateration
+1. Trilateration uses RSSI fingerprints to match to the closest stored signature.
+2. Sniffing mode lets anchor3 connect to the tag's soft‑AP and request its HTTP payload.
 
-# Dashboard Controls
-- **Track:** updates RSSI values + coordinates.
-- **Lock On:** cutscene (visual only).
-- **Launch:** triggers V41 for external servo.
-- **RSSI Nodes:** updates V0–V3.
-- **Sniff Trigger (V9):** pauses tracking and activates sniff read mode.
+## Ethics & Safety
+Only use sniffing or scanning features on devices you own or systems where you have explicit permission.
 
----
-
-# Sniffing & Trilateration
-The system performs two parallel tasks:
-
-### 1. **Fingerprint-based Trilateration**
-tracker.py:
-- Collects RSSI vector `[V0, V1, V2, V3]`.
-- Compares to fingerprints.
-- Finds nearest match using Euclidean distance.
-- Sends coordinates to Blynk.
-
-### 2. **HTTP Sniffing (anchor3)**
-When V9 = 1:
-- anchor3 attempts connection to tag soft-AP.
-- Repeatedly requests `http://192.168.4.56/`.
-- Streams payloads via Serial.
-- tracker.py prints them live.
-
----
-
-# Troubleshooting
-- **No RSSI updates:** check WiFi + Blynk token.
-- **Zero-value anchors:** reboot stuck anchor.
-- **No servo motion:** check D1 and D5 wiring; ensure power.
-- **Python serial errors:** verify COM port.
-- **Sniff mode does nothing:** ensure tagESP is powered and broadcasting.
-
----
-
-# Ethics & Safety
-Use sniffing only on networks/devices you own.
-The brute-force component in anchor3 is experimental and must not be used on arbitrary networks.
-
----
-
-# Developer Notes
-- anchor1 now merges both **RSSI scanning** and **servo motor control**.
-- Servos operate fully independently from RSSI tasks.
-- RSSI + servo processing can run concurrently due to lightweight logic.
-- anchor3 still handles the heavy sniffing workload.
-- tracker.py remains the system orchestrator.
-
----
-
-# End of README
-This documentation now reflects the unified system architecture with servo‑enabled anchor1.
+## Notes
+- RSSI averaging timing depends on SAMPLES × INTERVAL.
+- Sniffing requires anchor3 to be physically connected to your PC so tracker.py can read its serial output.
+- Anchors must remain fixed for consistent results.
 
