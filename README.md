@@ -7,7 +7,7 @@ It is intended for educational purposes, proof-of-concept IoT localization, and 
 
 ## Folder Structure
 ```
-├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 + pan/tilt servo control
+├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 and pan/tilt servo control
 ├── anchor2.ino             # ESP8266 sketch reporting RSSI to Blynk V1
 ├── anchor3.ino             # ESP8266 sketch reporting RSSI to Blynk V2, handles sniffing triggered by V9, returns payload to V10
 ├── anchor4.ino             # ESP8266 sketch reporting RSSI to Blynk V3
@@ -21,7 +21,7 @@ It is intended for educational purposes, proof-of-concept IoT localization, and 
 ## Quick Mapping
 | Device       | Function                                         | Blynk Pin |
 |--------------|--------------------------------------------------|-----------|
-| anchor1.ino  | Reports RSSI + handles pan/tilt servo control    | V0        |
+| anchor1.ino  | Reports RSSI and handles pan/tilt servo control    | V0        |
 | anchor2.ino  | Reports RSSI to second anchor                    | V1        |
 | anchor3.ino  | Reports RSSI, handles sniffing                   | V2 / V10  |
 | anchor4.ino  | Reports RSSI to fourth anchor                    | V3        |
@@ -46,7 +46,7 @@ Anchor1 is now responsible for two jobs: RSSI telemetry and local pan/tilt servo
 This makes anchor1 a more capable node: it now provides axis control alongside signal monitoring. Useful for sensor alignment, small radar-like demos, or any setup where you want to control orientation without extra hardware.
 
 ## Prerequisites (Windows)
-1. Python 3.8+ installed.
+1. Python 3.8and installed.
 2. Virtual environment and packages:
    ```
    python -m venv .venv
