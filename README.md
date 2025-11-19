@@ -7,7 +7,7 @@ It is intended for educational purposes, proof-of-concept IoT localization, and 
 
 ## Folder Structure
 ```
-├── anchor1.ino             # ESP8266 sketch reporting RSSI to Blynk V0 and pan/tilt servo control
+├── anchor1.ino             # Reports RSSI (V0), manual servo mode, and Auto-Target servo mode using Blynk Cloud API (V201)
 ├── anchor2.ino             # ESP8266 sketch reporting RSSI to Blynk V1
 ├── anchor3.ino             # ESP8266 sketch reporting RSSI to Blynk V2, handles sniffing triggered by V9, returns payload to V10
 ├── anchor4.ino             # ESP8266 sketch reporting RSSI to Blynk V3
@@ -21,15 +21,32 @@ It is intended for educational purposes, proof-of-concept IoT localization, and 
 ## Quick Mapping
 | Device       | Function                                         | Blynk Pin |
 |--------------|--------------------------------------------------|-----------|
-| anchor1.ino  | Reports RSSI and handles pan/tilt servo control    | V0        |
+| anchor1.ino  | RSSI, pan/tilt manual control, auto-target (API)    | V0, V201        |
 | anchor2.ino  | Reports RSSI to second anchor                    | V1        |
 | anchor3.ino  | Reports RSSI, handles sniffing                   | V2 / V10  |
 | anchor4.ino  | Reports RSSI to fourth anchor                    | V3        |
 | tracker.py   | Estimates (x,y) position and updates Blynk pins  | X: V6, Y: V7 |
 | tracker.py   | Watches V9 to pause RSSI collection              | Trigger: V9 |
 
-## Added: Pan/Tilt Servo Control via Anchor1
-Anchor1 is now responsible for two jobs: RSSI telemetry and local pan/tilt servo control. You connect two servos directly to the ESP8266 (e.g., PAN on D1, TILT on D5). The device boots, connects to WiFi/Blynk, starts scanning for `tagESP`, and keeps the servos at their last commanded angles.
+## Auto-Target Mode (Blynk Cloud V201)
+
+Anchor1 can now fetch an angle from Blynk Cloud every 1 second using the REST API:
+
+GET https://blynk.cloud/external/api/get?token=YOUR_TOKEN&V201
+
+This value controls the PAN servo automatically.
+
+### Mode Switching
+- Type `AUTO` in Serial → enables auto mode.
+- Type `MANUAL` → returns control to the user.
+- Manual commands are ignored while in AUTO.
+
+### Value Mapping
+Whatever is stored in V201:
+raw_value → pan_angle = raw_value * 2  (constrained 0–180)
+
+This lets the dashboard or other anchors push guidance angles.
+
 
 ### How the Servo Control Works
 1. Anchor1 powers up, attaches both servos, initializes them at their starting positions, and starts its normal RSSI scan cycle.
@@ -38,12 +55,13 @@ Anchor1 is now responsible for two jobs: RSSI telemetry and local pan/tilt servo
    - `PAN <angle>`
    - `TILT <angle>`
    - `(PAN, TILT) = (x, y)` for simultaneous updates.
-4. Angle values are constrained between 0 and 180 degrees.
+4. Angle values are constrained between 0 and 180 degrees virtually, and 0 to 90 degrees physically.
 5. The servos stay where you last set them. There’s no auto-reset or auto-centering.
 6. While you issue servo commands, anchor1 continues scanning WiFi, detecting `tagESP`, and sending RSSI values to Blynk.
+7. The servo system now supports two modes:
+   - MANUAL (default): user sends commands over Serial.
+   - AUTO: the device polls Blynk Cloud V201 every 1 sec and moves automatically.
 
-### The Upgrade
-This makes anchor1 a more capable node: it now provides axis control alongside signal monitoring. Useful for sensor alignment, small radar-like demos, or any setup where you want to control orientation without extra hardware.
 
 ## Prerequisites (Windows)
 1. Python 3.8and installed.
@@ -124,4 +142,5 @@ Update constants in all components:
 > - RSSI averaging timing depends on SAMPLES x INTERVAL.
 > - Sniffing requires anchor3 to be physically connected to your PC so tracker.py can read its serial output.
 > - Anchors must remain fixed for consistent results.
+> - When Auto mode is enabled, anchor1 ignores Serial commands and only listens to the V201 angle. If no value exists in V201, the servo holds its last position.
 
