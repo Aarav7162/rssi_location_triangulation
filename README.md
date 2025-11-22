@@ -143,4 +143,3 @@ Update constants in all components:
 > - Sniffing requires anchor3 to be physically connected to your PC so tracker.py can read its serial output.
 > - Anchors must remain fixed for consistent results.
 > - When Auto mode is enabled, anchor1 ignores Serial commands and only listens to the V201 angle. If no value exists in V201, the servo holds its last position.
-> - OTA (Using BlynkEdgent) is supported by all nodes.
